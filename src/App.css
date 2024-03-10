@@ -1,0 +1,91 @@
+#root {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  color: #EEEEEE;
+}
+
+ul {
+  list-style: none;
+  padding: 0;
+}
+
+.app-container {
+  position: relative;
+  display: flex;
+  background-color: #31363F;
+  width: 100vw;
+  height: 100vh;
+}
+
+.app-toolbar {
+  text-align: left;
+  height: 100%;
+  min-width: 200px;
+  background-color: #222831;
+  overflow: hidden;
+}
+
+.toolbar-item, .toolbar-title {
+  padding: 0 2rem;
+}
+
+.toolbar-title {
+  color: #76ABAE;
+  letter-spacing: 1px;
+}
+
+.toolbar-menu {
+  margin-top: 3rem;
+}
+
+.toolbar-item {
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  padding-bottom: 0.75rem;
+  padding-top: 0.75rem;
+  font-weight: 500;
+  transition: 0.25s all ease-in-out;
+}
+
+.toolbar-item:hover {
+  background-color: #31363F;
+  transform: scale(1.1);
+}
+
+.app-workspace {
+  position: relative;
+  overflow: scroll;
+  display: flex;
+  align-items: center;
+  margin: 0 auto;
+  padding: 1rem;
+}
+
+.workspace-info {
+  position: absolute;
+  top: 50%; left: 50%;
+  transform: translate(-50%, -50%);
+  text-align: center;
+  opacity: 0.5;
+}
+
+.app-buttons {
+  position: absolute;
+  bottom: 1rem;
+  right: 1rem;
+  display: flex;
+}
+
+.button {
+  margin: 0 0.5rem;
+  display: flex;
+  align-items: center;
+}
+
+.small-icon {
+  width: 18px;
+  height: 18px;
+  margin-right: 0.325rem;
+}
