@@ -7,7 +7,6 @@ declare global {
       ipcRenderer: {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         invoke: (channel: string, ...args: any[]) => Promise<any>;
-        // Přidejte další metody, které potřebujete
       };
     };
     // eslint-disable-next-line @typescript-eslint/no-explicit-any

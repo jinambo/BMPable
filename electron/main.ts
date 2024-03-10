@@ -2,6 +2,7 @@ import { app, BrowserWindow, dialog, ipcMain } from 'electron'
 import * as fs from 'fs';
 import path from 'node:path'
 import { convertPixelsToBMP } from './convertPixelsToBMP';
+import { hslToRgb, rgbToHsl } from './rgbHsvConvert';
 
 // The built directory structure
 //
@@ -116,6 +117,8 @@ ipcMain.handle('load-image', async (event, filePath) => {
       }
     }
 
+    console.log(`Width: ${width}, Height: ${height}, Pixels length: ${pixels.length}`);
+
     return { width, height, pixels };
   } catch (error) {
     console.error('Failed to load image', error);
@@ -134,6 +137,105 @@ ipcMain.handle('invert-image-colors', async (event, imageData) => {
   });
 
   return { width, height, pixels: invertedPixels };
+});
+
+// Pomocná funkce pro zaokrouhlení a omezení hodnot pixelů
+function clampAndRound(value) {
+  return Math.min(255, Math.max(0, Math.round(value)));
+}
+
+// Funkce pro úpravu saturace
+ipcMain.handle('adjust-image-saturation', async (event, imageData, saturationAdjustment) => {
+  const { width, height, pixels } = imageData;
+
+  // Adjust saturation
+  const adjustedPixels = [];
+  
+  for (let i = 0; i < pixels.length; i += 4) {
+    // Extrahovat RGB, alfa zůstane nezměněna
+    let [r, g, b] = [pixels[i], pixels[i + 1], pixels[i + 2]];
+    const a = pixels[i + 3];
+
+    // Převod RGB do HSL
+    let [h, s, l] = rgbToHsl(r, g, b);
+
+    // Úprava saturace
+    s *= saturationAdjustment;
+    s = Math.max(0, Math.min(1, s)); // Omezení saturace do rozmezí 0 až 1
+
+    // Převod HSL zpět na RGB
+    [r, g, b] = hslToRgb(h, s, l);
+
+    // Uložení upravených hodnot pixelů, včetně zaokrouhlení a omezení
+    adjustedPixels.push(clampAndRound(r), clampAndRound(g), clampAndRound(b), a);
+  }
+
+  console.log(`Width: ${width}, Height: ${height}, Pixels length: ${adjustedPixels.length}`);
+
+
+  return { width, height, pixels: adjustedPixels };
+});
+
+ipcMain.handle('rotate-image-90', async (event, imageData) => {
+  const { width, height, pixels } = imageData;
+
+  // Vytvoření nového pole pixelů pro otočený obrázek
+  const rotatedPixels = new Uint8ClampedArray(width * height * 4);
+
+  // Procházení původního obrázku a přeskládání pixelů
+  for (let y = 0; y < height; y++) {
+    for (let x = 0; x < width; x++) {
+      // Výpočet indexu pro původní a nové umístění pixelu
+      const originalIndex = (y * width + x) * 4;
+      const rotatedIndex = ((width - x - 1) * height + y) * 4;
+
+      // Přesun pixelů
+      rotatedPixels[rotatedIndex] = pixels[originalIndex];       // R
+      rotatedPixels[rotatedIndex + 1] = pixels[originalIndex + 1]; // G
+      rotatedPixels[rotatedIndex + 2] = pixels[originalIndex + 2]; // B
+      rotatedPixels[rotatedIndex + 3] = pixels[originalIndex + 3]; // A
+    }
+  }
+
+  return { width: height, height: width, pixels: rotatedPixels };
+});
+
+ipcMain.handle('flip-image-vertical', async (event, imageData) => {
+  const { width, height, pixels } = imageData;
+
+  const flippedPixels = new Uint8ClampedArray(pixels.length);
+
+  for (let y = 0; y < height; y++) {
+    for (let x = 0; x < width; x++) {
+      const originalIndex = (y * width + x) * 4;
+      const flippedIndex = ((height - 1 - y) * width + x) * 4;
+
+      for (let i = 0; i < 4; i++) { // Pro R, G, B, A
+        flippedPixels[flippedIndex + i] = pixels[originalIndex + i];
+      }
+    }
+  }
+
+  return { width, height, pixels: flippedPixels };
+});
+
+ipcMain.handle('flip-image-horizontal', async (event, imageData) => {
+  const { width, height, pixels } = imageData;
+
+  const flippedPixels = new Uint8ClampedArray(pixels.length);
+
+  for (let y = 0; y < height; y++) {
+    for (let x = 0; x < width; x++) {
+      const originalIndex = (y * width + x) * 4;
+      const flippedIndex = (y * width + (width - 1 - x)) * 4;
+
+      for (let i = 0; i < 4; i++) { // Pro R, G, B, A
+        flippedPixels[flippedIndex + i] = pixels[originalIndex + i];
+      }
+    }
+  }
+
+  return { width, height, pixels: flippedPixels };
 });
 
 ipcMain.handle('save-image', async (event, { pixels, width, height }) => {

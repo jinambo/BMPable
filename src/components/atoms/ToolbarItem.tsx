@@ -1,13 +1,13 @@
 interface ToolbarItemProps {
   title: string;
-  img: string;
+  Icon: any;
   action: () => void;
 }
 
-const ToolbarItem = ({ title, img, action }: ToolbarItemProps) => {
+const ToolbarItem = ({ title, Icon, action }: ToolbarItemProps) => {
   return (
     <li className='toolbar-item' onClick={action}>
-      <img className='small-icon' src={img} />
+      <Icon className='small-icon' />
       {title}
     </li>
   );
