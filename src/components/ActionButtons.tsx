@@ -1,4 +1,4 @@
-import React, { useContext, useEffect, useRef, useState } from 'react';
+import React, { useContext, useEffect, useRef } from 'react';
 import { ImageDataProps } from '../types/ImageDataProps';
 import { ImageContext } from './ImageProvider';
 const { ipcRenderer } = window.electron;
@@ -8,7 +8,7 @@ import ExportIcon from "../../public/icons/export.svg";
 
 const ActionButtons: React.FC = () => {
   const inputRef = useRef<HTMLInputElement>(null);
-  const { setImageData, imageData } = useContext(ImageContext);
+  const { setImageData, setOriginalImageData, imageData } = useContext(ImageContext);
 
   useEffect(() => {
     const handleFileChange = async (event: Event) => {
@@ -18,6 +18,7 @@ const ActionButtons: React.FC = () => {
         try {
           const data: ImageDataProps = await ipcRenderer.invoke('load-image', path);
           setImageData(data);
+          setOriginalImageData(data);
         } catch (error) {
           console.error('Failed to load image', error);
         }
@@ -37,7 +38,7 @@ const ActionButtons: React.FC = () => {
 
   const openFilePicker = () => {
     if (inputRef.current) {
-      inputRef.current.click(); // Aktivace kliknutí na skrytý input
+      inputRef.current.click();
     }
   };
 

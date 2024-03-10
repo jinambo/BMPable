@@ -94,13 +94,26 @@ ul {
 }
 
 .app-toolbar {
+  display: flex;
+  flex-direction: column;
   text-align: left;
+  position: relative;
   height: calc(100% - 2rem);
   margin-left: 1rem;
   border-radius: 8px;
   min-width: 260px;
   background-color: #222831;
   overflow: hidden;
+}
+
+.app-preview {
+  position: absolute;
+  bottom: 1rem;
+  left: 1rem;
+  padding: 0.5rem;
+  border-radius: 6px;
+  background-color: #7fa3da;
+  color: #000000;
 }
 
 .toolbar-item__inner, .toolbar-logo {
@@ -172,6 +185,10 @@ ul {
   background-color: #1a2029;
 }
 
+.toolbar-item__buttons {
+  margin-top: 1rem;
+}
+
 .toolbar-positioning {
   margin-top: 4.5rem;
   padding: 1rem 2rem;
@@ -213,6 +230,7 @@ ul {
   align-items: center;
   margin: 0 auto;
   padding: 1rem;
+  height: 100%;
 }
 
 .workspace-info {
@@ -231,9 +249,13 @@ ul {
 }
 
 .button {
-  margin: 0 0.5rem;
+  margin-right: 0.5rem;
   display: flex;
   align-items: center;
+}
+
+.button--small {
+  font-size: 0.75rem;
 }
 
 .button svg {
@@ -245,7 +267,7 @@ ul {
 .small-icon {
   width: 18px;
   height: 18px;
-  margin-right: 0.325rem;
+  margin-right: 0.5rem;
   transition: 0.25s transform ease-in-out;
 }
 

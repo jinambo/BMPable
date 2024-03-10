@@ -3,6 +3,8 @@ import { ImageContext } from "./ImageProvider";
 import ToolbarItem from "./atoms/ToolbarItem";
 import Toggle from "./atoms/Toggle";
 import RangeInput from "./atoms/InputRange";
+import PositioningItem from "./atoms/PositioningItem";
+import ApplyButtons from "./atoms/ApplyButtons";
 const { ipcRenderer } = window.electron;
 
 import InvertIcon from "../../public/icons/invert.svg";
@@ -10,35 +12,44 @@ import SaturationIcon from "../../public/icons/saturation.svg";
 import RotateIcon from "../../public/icons/rotate.svg";
 import FlipVerticalIcon from "../../public/icons/flip-vertical.svg";
 import FlipHorizontalIcon from "../../public/icons/flip-horizontal.svg";
-import PositioningItem from "./atoms/PositioningItem";
+import ContrastIcon from "../../public/icons/contrast.svg";
+import BrightnessIcon from "../../public/icons/brightness.svg";
+
+enum AdjustmentActions {
+  SATURATION = 'adjust-image-saturation',
+  CONTRAST = 'adjust-image-contrast',
+  BRIGHTNESS = 'adjust-image-brightness',
+}
+
+enum PositionActions {
+  ROTATE = 'rotate-image-90',
+  FLIP_VERTICAL = 'flip-image-vertical',
+  FLIP_HORIZONTAL = 'flip-image-horizontal'
+}
 
 const Toolbar: React.FC = () => {
-  const {imageData, setImageData} = useContext(ImageContext);
+  const {
+    imageData,
+    setImageData,
+    previewImageData,
+    setPreviewImageData,
+  } = useContext(ImageContext);
   const [inverted, setInverted] = useState<boolean>(null);
 
-  const handleRotation = async () => {
+  const handlePositioning = async (action: PositionActions) => {
     if (!imageData) return;
-    const rotatedData = await ipcRenderer.invoke('rotate-image-90', imageData);
-    setImageData(rotatedData);
+
+    const updatedData = await ipcRenderer.invoke(action, imageData);
+    setImageData(updatedData);
   }
 
-  const handleFlipVertical = async () => {
+  const handleAdjustChange = async (value: number, action: AdjustmentActions) => {
     if (!imageData) return;
-    const rotatedData = await ipcRenderer.invoke('flip-image-vertical', imageData);
-    setImageData(rotatedData); 
-  }
+    if (!previewImageData) setPreviewImageData(imageData);
 
-  const handleFlipHorizontal = async () => {
-    if (!imageData) return;
-    const rotatedData = await ipcRenderer.invoke('flip-image-horizontal', imageData);
-    setImageData(rotatedData); 
+    const adjustedData = await ipcRenderer.invoke(action, imageData, value / 100);
+    setPreviewImageData(adjustedData);
   }
-
-  const handleSaturationChange = async (value: number) => {
-    if (!imageData) return;
-    const saturedData = await ipcRenderer.invoke('adjust-image-saturation', imageData, value);
-    setImageData(saturedData);
-  };
 
   useEffect(() => {
     const triggerInvertion = async () => {
@@ -62,9 +73,18 @@ const Toolbar: React.FC = () => {
       </div>
       
       <div className="toolbar-positioning flex-middle">
-        <PositioningItem onClick={handleFlipHorizontal} Icon={FlipHorizontalIcon} />
-        <PositioningItem onClick={handleFlipVertical} Icon={FlipVerticalIcon} />
-        <PositioningItem onClick={handleRotation} Icon={RotateIcon} />
+        <PositioningItem
+          onClick={() => handlePositioning(PositionActions.FLIP_HORIZONTAL)}
+          Icon={FlipHorizontalIcon}
+        />
+        <PositioningItem
+          onClick={() => handlePositioning(PositionActions.FLIP_VERTICAL)}
+          Icon={FlipVerticalIcon}
+        />
+        <PositioningItem
+          onClick={() => handlePositioning(PositionActions.ROTATE)}
+          Icon={RotateIcon}
+        />
       </div>
 
       <ul className='toolbar-menu'>
@@ -74,7 +94,6 @@ const Toolbar: React.FC = () => {
         >
           <h6>Invert colors</h6>
           <small>You can toggle image's color here</small>
-
           <Toggle
             style={{'marginTop': '0.5rem'}}
             state={inverted}
@@ -86,16 +105,48 @@ const Toolbar: React.FC = () => {
           title="Saturation"
           Icon={SaturationIcon}
         >
-          <h6>Apply saturation</h6>
+          <h6>Adjust saturation</h6>
           <small>You can adjust saturation of the image here.</small>
+          <RangeInput
+            min={0}
+            max={500}
+            initialValue={100}
+            step={1}
+            onChange={(value) => handleAdjustChange(value, AdjustmentActions.SATURATION)}
+          />
+          <ApplyButtons />
+        </ToolbarItem>
 
+        <ToolbarItem
+          title="Contrast"
+          Icon={ContrastIcon}
+        >
+          <h6>Adjust contrast</h6>
+          <small>You can adjust contrast of the image here.</small>
           <RangeInput
             min={0}
             max={200}
             initialValue={100}
             step={1}
-            onChange={handleSaturationChange}
+            onChange={(value) => handleAdjustChange(value, AdjustmentActions.CONTRAST)}
           />
+          <ApplyButtons />
+        </ToolbarItem>
+
+        <ToolbarItem
+          title="Brightness"
+          Icon={BrightnessIcon}
+        >
+          <h6>Adjust brightness</h6>
+          <small>You can adjust brightness of the image here.</small>
+          <RangeInput
+            min={-100}
+            max={100}
+            initialValue={0}
+            step={1}
+            onChange={(value) => handleAdjustChange(value, AdjustmentActions.BRIGHTNESS)}
+          />
+          <ApplyButtons />
         </ToolbarItem>
       </ul>
     </nav>

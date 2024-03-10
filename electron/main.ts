@@ -172,6 +172,32 @@ ipcMain.handle('adjust-image-saturation', async (event, imageData, saturationAdj
   return { width, height, pixels: adjustedPixels };
 });
 
+// Function to adjust contrast
+ipcMain.handle('adjust-image-contrast', async (event, imageData, contrastAdjustment) => {
+  const { pixels } = imageData;
+  const factor = (259 * (contrastAdjustment + 255)) / (255 * (259 - contrastAdjustment));
+
+  const adjustedPixels = pixels.map((value, index) => {
+    if ((index + 1) % 4 === 0) return value; // Ignore alpha channel
+    return clampAndRound(factor * (value - 128) + 128);
+  });
+
+  return { ...imageData, pixels: adjustedPixels };
+});
+
+// Function to adjust brightness
+ipcMain.handle('adjust-image-brightness', async (event, imageData, brightnessAdjustment) => {
+  const { pixels } = imageData;
+
+  const adjustedPixels = pixels.map((value, index) => {
+    if ((index + 1) % 4 === 0) return value; // Ignore alpha channel
+    return clampAndRound(value + brightnessAdjustment * 255);
+  });
+
+  return { ...imageData, pixels: adjustedPixels };
+});
+
+
 // Function to rotate the image by 90 degrees
 ipcMain.handle('rotate-image-90', async (event, imageData) => {
   const { width, height, pixels } = imageData;

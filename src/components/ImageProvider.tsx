@@ -6,14 +6,28 @@ export const ImageContext = createContext(null);
 
 const ImageProvider = ({ children }) => {
   const [imageData, setImageData] = useState<ImageDataProps | null>(null);
-  const [imageSettings, setImageSettings] = useState<ImageSettingsProps | null>(null);
+  // const [imageSettings, setImageSettings] = useState<ImageSettingsProps | null>(null);
+  const [previewImageData, setPreviewImageData] = useState<ImageDataProps | null>(null);
+
+  const applyChanges = () => {
+    if (previewImageData) {
+      setImageData(previewImageData);
+      setPreviewImageData(null);
+    }
+  };
+
+  const discardChanges = () => {
+    setPreviewImageData(null);
+  }
 
   return (
     <ImageContext.Provider value={{
       imageData,
-      imageSettings,
+      previewImageData,
       setImageData,
-      setImageSettings
+      setPreviewImageData,
+      applyChanges,
+      discardChanges
     }}>
       { children }
     </ImageContext.Provider>

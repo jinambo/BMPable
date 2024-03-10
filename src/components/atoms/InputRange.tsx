@@ -37,7 +37,7 @@ const RangeInput: React.FC<RangeInputProps> = ({
           margin: '5px 0',
         }}
       />
-      <div style={{ marginLeft: '10px', fontSize: 12 }}>{value / 100}</div>
+      <div style={{ marginLeft: '10px', fontSize: 12 }}>{value}</div>
     </div>
   );
 };

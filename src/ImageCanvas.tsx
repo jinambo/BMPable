@@ -5,7 +5,7 @@ import { ImageContext } from './components/ImageProvider';
 
 const ImageCanvas: React.FC = () => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const { imageData } = useContext(ImageContext);
+  const {imageData, previewImageData} = useContext(ImageContext);
 
   const drawImage = (data: ImageDataProps) => {
     if (canvasRef.current) {
@@ -28,11 +28,19 @@ const ImageCanvas: React.FC = () => {
   };
 
   useEffect(() => {
+    if (previewImageData) {
+      drawImage(previewImageData);
+      return;
+    }
+
     if (imageData) drawImage(imageData);
-  }, [imageData]);
+  }, [imageData, previewImageData]);
 
   return (
     <div className='app-workspace'>
+      { previewImageData && 
+        <small className='app-preview'>This is preview of the image. You have to apply the changes first.</small>
+      }
       <canvas ref={canvasRef} style={{  }} />
       { !imageData &&
         <p className='workspace-info'>No image data loaded yet ..</p>
