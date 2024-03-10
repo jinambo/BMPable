@@ -1,27 +1,20 @@
-import { useContext } from "react";
+import { useContext, useEffect, useState } from "react";
 import { ImageContext } from "./ImageProvider";
 import ToolbarItem from "./atoms/ToolbarItem";
+import Toggle from "./atoms/Toggle";
+import RangeInput from "./atoms/InputRange";
 const { ipcRenderer } = window.electron;
 
 import InvertIcon from "../../public/icons/invert.svg";
 import SaturationIcon from "../../public/icons/saturation.svg";
 import RotateIcon from "../../public/icons/rotate.svg";
-
+import FlipVerticalIcon from "../../public/icons/flip-vertical.svg";
+import FlipHorizontalIcon from "../../public/icons/flip-horizontal.svg";
+import PositioningItem from "./atoms/PositioningItem";
 
 const Toolbar: React.FC = () => {
-  const { imageData, setImageData } = useContext(ImageContext);
-
-  const invertColors = async () => {
-    if (!imageData) return;
-    const invertedData = await ipcRenderer.invoke('invert-image-colors', imageData);
-    setImageData(invertedData);
-  };
-
-  const handleSaturation = async () => {
-    if (!imageData) return;
-    const saturedData = await ipcRenderer.invoke('adjust-image-saturation', imageData, 1.5);
-    setImageData(saturedData);
-  }
+  const {imageData, setImageData} = useContext(ImageContext);
+  const [inverted, setInverted] = useState<boolean>(null);
 
   const handleRotation = async () => {
     if (!imageData) return;
@@ -41,6 +34,22 @@ const Toolbar: React.FC = () => {
     setImageData(rotatedData); 
   }
 
+  const handleSaturationChange = async (value: number) => {
+    if (!imageData) return;
+    const saturedData = await ipcRenderer.invoke('adjust-image-saturation', imageData, value);
+    setImageData(saturedData);
+  };
+
+  useEffect(() => {
+    const triggerInvertion = async () => {
+      if (!imageData) return;
+      const invertedData = await ipcRenderer.invoke('invert-image-colors', imageData);
+      setImageData(invertedData);       
+    }
+
+    if (inverted !== null) triggerInvertion();
+  }, [inverted]);
+
   return (
     <nav className='app-toolbar'>
 
@@ -52,36 +61,42 @@ const Toolbar: React.FC = () => {
         </div>
       </div>
       
+      <div className="toolbar-positioning flex-middle">
+        <PositioningItem onClick={handleFlipHorizontal} Icon={FlipHorizontalIcon} />
+        <PositioningItem onClick={handleFlipVertical} Icon={FlipVerticalIcon} />
+        <PositioningItem onClick={handleRotation} Icon={RotateIcon} />
+      </div>
+
       <ul className='toolbar-menu'>
         <ToolbarItem
           title="Invert colors"
           Icon={InvertIcon}
-          action={invertColors}
-        ></ToolbarItem>
+        >
+          <h6>Invert colors</h6>
+          <small>You can toggle image's color here</small>
+
+          <Toggle
+            style={{'marginTop': '0.5rem'}}
+            state={inverted}
+            toggle={setInverted}
+          />
+        </ToolbarItem>
 
         <ToolbarItem
           title="Saturation"
           Icon={SaturationIcon}
-          action={handleSaturation}
-        ></ToolbarItem>
+        >
+          <h6>Apply saturation</h6>
+          <small>You can adjust saturation of the image here.</small>
 
-        <ToolbarItem
-          title="Rotate"
-          Icon={RotateIcon}
-          action={handleRotation}
-        ></ToolbarItem>
-
-        <ToolbarItem
-          title="Flip vertical"
-          Icon={RotateIcon}
-          action={handleFlipVertical}
-        ></ToolbarItem>
-
-        <ToolbarItem
-          title="Flip horizontal"
-          Icon={RotateIcon}
-          action={handleFlipHorizontal}
-        ></ToolbarItem>
+          <RangeInput
+            min={0}
+            max={200}
+            initialValue={100}
+            step={1}
+            onChange={handleSaturationChange}
+          />
+        </ToolbarItem>
       </ul>
     </nav>
   );

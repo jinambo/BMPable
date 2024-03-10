@@ -68,14 +68,13 @@ ipcMain.handle('get-image-path', async (event) => {
   return imagePath;
 });
 
+// Function to load the image from the file system
 ipcMain.handle('load-image', async (event, filePath) => {
   try {
-    // Předpokládáme, že 'filePath' je absolutní cesta k souboru.
     const data = await fs.readFileSync(filePath);
-
     console.log('data:', data);
 
-    // Získání metadat z hlavičky BMP
+    // Get metadata from BMP header
     const headerSize = data.readUInt32LE(10);
     const width = data.readUInt32LE(18);
     const height = data.readUInt32LE(22);
@@ -88,37 +87,35 @@ ipcMain.handle('load-image', async (event, filePath) => {
     console.log('img size: ', imageSize);
     console.log('header size (offset): ', headerSize);
 
-
     if (bitsPerPixel !== 24) {
       throw new Error('Tento příklad podporuje pouze 24-bitové BMP obrázky.');
     }
     
-    // Výpočet velikosti jednoho řádku v bajtech včetně paddingu
+    // Calculate size of one row in bytes including the padding
     const bytesPerPixel = bitsPerPixel / 8;
     const bytesPerRowWithoutPadding = width * bytesPerPixel;
     const padding = (4 - (bytesPerRowWithoutPadding % 4)) % 4;
     const bytesPerRow = bytesPerRowWithoutPadding + padding;
 
-    // Ověření, že velikost dat odpovídá očekávané velikosti (width * height * 3 bajty na pixel + padding)
+    // Verify that the data size matches the expected size (width * height * 3 bajty na pixel + padding)
     if (imageSize !== height * bytesPerRow) {
       throw new Error('Velikost obrazových dat neodpovídá očekávané velikosti z metadat.');
     }
 
-    // Čtení dat obrázku
+    // Read the image data
     const pixels = [];
-    for (let y = height - 1; y >= 0; y--) { // Obrázek je uložen od spodních řádků
+    for (let y = height - 1; y >= 0; y--) { // The image is saved from the bottom rows
       const rowStart = headerSize + y * bytesPerRow;
       const rowEnd = rowStart + bytesPerRowWithoutPadding;
       for (let x = rowStart; x < rowEnd; x += bytesPerPixel) {
         const blue = data[x];
         const green = data[x + 1];
         const red = data[x + 2];
-        pixels.push(red, green, blue, 255); // Pixel v RGBA formátu
+        pixels.push(red, green, blue, 255); // Pixel in RGBA format
       }
     }
 
-    console.log(`Width: ${width}, Height: ${height}, Pixels length: ${pixels.length}`);
-
+    // console.log(`Width: ${width}, Height: ${height}, Pixels length: ${pixels.length}`);
     return { width, height, pixels };
   } catch (error) {
     console.error('Failed to load image', error);
@@ -126,6 +123,7 @@ ipcMain.handle('load-image', async (event, filePath) => {
   }
 });
 
+// Function to invert image's colors
 ipcMain.handle('invert-image-colors', async (event, imageData) => {
   const { width, height, pixels } = imageData;
 
@@ -139,12 +137,12 @@ ipcMain.handle('invert-image-colors', async (event, imageData) => {
   return { width, height, pixels: invertedPixels };
 });
 
-// Pomocná funkce pro zaokrouhlení a omezení hodnot pixelů
+// Helper function to round and clamp pixels value
 function clampAndRound(value) {
   return Math.min(255, Math.max(0, Math.round(value)));
 }
 
-// Funkce pro úpravu saturace
+// Function to adjust image saturation
 ipcMain.handle('adjust-image-saturation', async (event, imageData, saturationAdjustment) => {
   const { width, height, pixels } = imageData;
 
@@ -152,45 +150,44 @@ ipcMain.handle('adjust-image-saturation', async (event, imageData, saturationAdj
   const adjustedPixels = [];
   
   for (let i = 0; i < pixels.length; i += 4) {
-    // Extrahovat RGB, alfa zůstane nezměněna
+    // Extract RGB, alfa stays untouched
     let [r, g, b] = [pixels[i], pixels[i + 1], pixels[i + 2]];
     const a = pixels[i + 3];
 
-    // Převod RGB do HSL
+    // Convert RGB to HSL
     let [h, s, l] = rgbToHsl(r, g, b);
 
-    // Úprava saturace
+    // Adjust saturation
     s *= saturationAdjustment;
-    s = Math.max(0, Math.min(1, s)); // Omezení saturace do rozmezí 0 až 1
+    s = Math.max(0, Math.min(1, s)); // Limit saturation to values 0-1
 
-    // Převod HSL zpět na RGB
+    // Convert HSL back to RGB
     [r, g, b] = hslToRgb(h, s, l);
 
-    // Uložení upravených hodnot pixelů, včetně zaokrouhlení a omezení
+    // Save adjusted values of pixels
     adjustedPixels.push(clampAndRound(r), clampAndRound(g), clampAndRound(b), a);
   }
 
-  console.log(`Width: ${width}, Height: ${height}, Pixels length: ${adjustedPixels.length}`);
-
-
+  // console.log(`Width: ${width}, Height: ${height}, Pixels length: ${adjustedPixels.length}`);
   return { width, height, pixels: adjustedPixels };
 });
 
+// Function to rotate the image by 90 degrees
 ipcMain.handle('rotate-image-90', async (event, imageData) => {
   const { width, height, pixels } = imageData;
 
-  // Vytvoření nového pole pixelů pro otočený obrázek
+  // Create a new array of pixels
   const rotatedPixels = new Uint8ClampedArray(width * height * 4);
 
-  // Procházení původního obrázku a přeskládání pixelů
+  // Browse the original image and resize the pixels
   for (let y = 0; y < height; y++) {
     for (let x = 0; x < width; x++) {
-      // Výpočet indexu pro původní a nové umístění pixelu
+      // Calculate the index for the original and new pixel locations
       const originalIndex = (y * width + x) * 4;
       const rotatedIndex = ((width - x - 1) * height + y) * 4;
 
       // Přesun pixelů
-      rotatedPixels[rotatedIndex] = pixels[originalIndex];       // R
+      rotatedPixels[rotatedIndex] = pixels[originalIndex];         // R
       rotatedPixels[rotatedIndex + 1] = pixels[originalIndex + 1]; // G
       rotatedPixels[rotatedIndex + 2] = pixels[originalIndex + 2]; // B
       rotatedPixels[rotatedIndex + 3] = pixels[originalIndex + 3]; // A
@@ -200,6 +197,7 @@ ipcMain.handle('rotate-image-90', async (event, imageData) => {
   return { width: height, height: width, pixels: rotatedPixels };
 });
 
+// Function to flip the image vertically
 ipcMain.handle('flip-image-vertical', async (event, imageData) => {
   const { width, height, pixels } = imageData;
 
@@ -210,7 +208,7 @@ ipcMain.handle('flip-image-vertical', async (event, imageData) => {
       const originalIndex = (y * width + x) * 4;
       const flippedIndex = ((height - 1 - y) * width + x) * 4;
 
-      for (let i = 0; i < 4; i++) { // Pro R, G, B, A
+      for (let i = 0; i < 4; i++) { // For R, G, B, A
         flippedPixels[flippedIndex + i] = pixels[originalIndex + i];
       }
     }
@@ -219,6 +217,7 @@ ipcMain.handle('flip-image-vertical', async (event, imageData) => {
   return { width, height, pixels: flippedPixels };
 });
 
+// Function to flip the image vertically
 ipcMain.handle('flip-image-horizontal', async (event, imageData) => {
   const { width, height, pixels } = imageData;
 
@@ -229,7 +228,7 @@ ipcMain.handle('flip-image-horizontal', async (event, imageData) => {
       const originalIndex = (y * width + x) * 4;
       const flippedIndex = (y * width + (width - 1 - x)) * 4;
 
-      for (let i = 0; i < 4; i++) { // Pro R, G, B, A
+      for (let i = 0; i < 4; i++) { // For R, G, B, A
         flippedPixels[flippedIndex + i] = pixels[originalIndex + i];
       }
     }
@@ -238,11 +237,12 @@ ipcMain.handle('flip-image-horizontal', async (event, imageData) => {
   return { width, height, pixels: flippedPixels };
 });
 
+// Function to convert pixels to the BMP image back and save
 ipcMain.handle('save-image', async (event, { pixels, width, height }) => {
   console.log('saving image: ', pixels);
   console.log(`width: ${width}px x height: ${height}px`);
 
-  // Dialog pro výběr umístění souboru
+  // Dialog window to select location
   const { filePath } = await dialog.showSaveDialog({
     buttonLabel: 'Save Image',
     defaultPath: path.join(app.getPath('downloads'), 'image.bmp'),
@@ -253,7 +253,7 @@ ipcMain.handle('save-image', async (event, { pixels, width, height }) => {
 
   if (filePath) {
     try {
-      // Převod pixelů RGBA zpět na formát BMP a uložení souboru
+      // Convert RGBA pixel data back to BMP format and save as file
       const imageData = convertPixelsToBMP(pixels, width, height);
       fs.writeFileSync(filePath, imageData);
       return { success: true, path: filePath };
@@ -262,7 +262,7 @@ ipcMain.handle('save-image', async (event, { pixels, width, height }) => {
       return { success: false, error: error.message };
     }
   } else {
-    // Uživatel zrušil dialog
+    // User closed the dialog window
     return { success: false, error: 'Dialog cancelled by the user.' };
   }
 });

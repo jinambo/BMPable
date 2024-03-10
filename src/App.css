@@ -1,3 +1,4 @@
+/* BASIC STYLES */
 * {
   margin: 0;
   padding: 0;
@@ -9,6 +10,33 @@ ul {
   padding: 0;
 }
 
+.flex-middle {
+  display: flex;
+  align-items: center;
+}
+
+.inner {
+  padding: 1rem;
+}
+
+/* COLORS */
+.bg-primary {
+  background-color: #222831;
+}
+
+.active.bg-primary {
+  background-color: #1a2029;
+}
+
+.light-scheme .bg-primary {
+  background-color: #d6d9dd;
+}
+
+.light-scheme .active.bg-primary {
+  background-color: #c7cdd5;
+}
+
+/* LIGHT SCHEME DEFINITIONS STYLES */
 .light-scheme.app-container {
   background-color: #EEEEEE;
   color: #222831;
@@ -22,17 +50,43 @@ ul {
   color: #000000;
 }
 
-.light-scheme .toolbar-item:hover {
+.light-scheme .toolbar-item__inner:hover,
+.light-scheme .toolbar-item__content,
+.light-scheme .toolbar-positioning {
   background-color: #c7cdd5;
 }
 
-.light-scheme .toolbar-item svg {
+.light-scheme .positioning-item:hover {
+  background-color: #222831;
+}
+
+.light-scheme .positioning-item:hover svg path {
+  fill: #c7cdd5;
+}
+
+.light-scheme .positioning-item {
+  border: 1px solid #222831;
+}
+
+.light-scheme .toolbar-item__inner svg.small-icon,
+.light-scheme .positioning-item svg path {
   fill: #222831;
 }
 
+.light-scheme .toolbar-item__inner svg.small-icon--stroke {
+  fill: none;
+}
+
+.light-scheme .toolbar-item__inner svg.small-icon--stroke path {
+  stroke: #222831;
+}
+
+
+/* APP PARTS STYLES */
 .app-container {
   position: relative;
   display: flex;
+  align-items: center;
   background-color: #31363F;
   color: #EEEEEE;
   width: 100vw;
@@ -41,20 +95,22 @@ ul {
 
 .app-toolbar {
   text-align: left;
-  height: 100%;
+  height: calc(100% - 2rem);
+  margin-left: 1rem;
+  border-radius: 8px;
   min-width: 260px;
   background-color: #222831;
   overflow: hidden;
 }
 
-.toolbar-item, .toolbar-logo {
-  padding: 0 2rem;
+.toolbar-item__inner, .toolbar-logo {
+  padding: 0 1.5rem;
 }
 
 .toolbar-logo {
   display: flex;
   align-items: center;
-  margin-top: 1rem;
+  margin-top: 1.5rem;
 }
 
 .toolbar-logo__image {
@@ -76,26 +132,78 @@ ul {
 }
 
 .toolbar-menu {
-  margin-top: 5rem;
+  overflow-y: scroll;
+  height: 100%;
 }
 
-.toolbar-item {
+.toolbar-item small {
+  font-size: 0.675rem;
+}
+
+.toolbar-item__inner {
   cursor: pointer;
   display: flex;
   align-items: center;
+  justify-content: space-between;
   padding-bottom: 0.75rem;
   padding-top: 0.75rem;
   font-weight: 500;
   transition: 0.25s all ease-in-out;
 }
 
-.toolbar-item:hover {
+.toolbar-item__inner:hover {
   background-color: #1a2029;
-  transform: scale(1.1);
+  transform: scale(1.025);
 }
 
-.toolbar-item svg {
+.toolbar-item__inner svg.small-icon {
   fill: #EEEEEE;
+}
+
+.toolbar-item__inner svg.small-icon--stroke {
+  fill: none;
+}
+
+.toolbar-item__inner svg.small-icon--stroke path {
+  stroke: #EEEEEE;
+}
+
+.toolbar-item__content {
+  background-color: #1a2029;
+}
+
+.toolbar-positioning {
+  margin-top: 4.5rem;
+  padding: 1rem 2rem;
+  text-align: center;
+  justify-content: center;
+  background-color: #1a2029;
+}
+
+.positioning-item {
+  cursor: pointer;
+  padding: 0.5rem;
+  margin: 0.33rem;
+  border-radius: 6px;
+  border: 1px solid #ffffff;
+  transition: 0.25s all ease-in-out;
+}
+
+.positioning-item svg {
+  width: 16px;
+  height: 16px;
+}
+
+.positioning-item svg path {
+  fill: #EEEEEE;
+}
+
+.positioning-item:hover {
+  background-color: #ffffff;
+}
+
+.positioning-item:hover svg path {
+  fill: #1a2029;
 }
 
 .app-workspace {
@@ -128,18 +236,24 @@ ul {
   align-items: center;
 }
 
+.button svg {
+  width: 18px;
+  height: 18px;
+  margin-right: 0.35rem;
+}
+
 .small-icon {
   width: 18px;
   height: 18px;
   margin-right: 0.325rem;
+  transition: 0.25s transform ease-in-out;
 }
 
-.app-scheme-toggle {
-  position: absolute;
-  top: 1rem;
-  right: 1rem;
+.small-icon--flipped {
+  transform: rotate(180deg);
 }
 
+/* TOGGLE SWITCH STYLES */
 .switch {
   position: relative;
   display: inline-block;
@@ -185,17 +299,31 @@ input:focus + .slider {
   box-shadow: 0 0 1px #222831;
 }
 
+.switch-parent--default input:checked + .slider {
+  background-color: #5c86c6;
+}
+
+.switch-parent--default input:focus + .slider {
+  box-shadow: 0 0 1px #5c86c6;
+}
+
 input:checked + .slider:before {
   -webkit-transform: translateX(13px);
   -ms-transform: translateX(13px);
   transform: translateX(13px);
 }
 
-/* Rounded sliders */
 .slider.round {
   border-radius: 17px;
 }
 
 .slider.round:before {
   border-radius: 50%;
+}
+
+.input-range {
+  display: flex;
+  align-items: center;
+  margin-top: 0.5rem;
+  text-align: center;
 }

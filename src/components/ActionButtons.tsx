@@ -3,6 +3,9 @@ import { ImageDataProps } from '../types/ImageDataProps';
 import { ImageContext } from './ImageProvider';
 const { ipcRenderer } = window.electron;
 
+import AddIcon from "../../public/icons/add.svg";
+import ExportIcon from "../../public/icons/export.svg";
+
 const ActionButtons: React.FC = () => {
   const inputRef = useRef<HTMLInputElement>(null);
   const { setImageData, imageData } = useContext(ImageContext);
@@ -52,12 +55,11 @@ const ActionButtons: React.FC = () => {
       <input ref={inputRef} type="file" accept=".bmp" style={{display: 'none'}} />
 
       <button className="button" onClick={openFilePicker}>
-        <img className='small-icon' src="../../public/icons/add.svg" alt="New image" />
-        New image
+        <AddIcon /> New image
       </button> 
 
       <button className="button" onClick={saveImage}>
-        <img className='small-icon' src="../../public/icons/export.svg" alt="Export image" />
+        <ExportIcon />
         Export image
       </button> 
     </div>
