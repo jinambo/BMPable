@@ -82,6 +82,12 @@ ipcMain.handle('load-image', async (event, filePath) => {
     const bitsPerPixel = data.readUInt16LE(28);
     const imageSize = data.readUInt32LE(34);
 
+    const headerData = {
+      headerSize,
+      bitsPerPixel,
+      imageSize
+    }
+
     let pixels;
     switch(bitsPerPixel) {
       case 1:
@@ -103,7 +109,7 @@ ipcMain.handle('load-image', async (event, filePath) => {
         throw new Error('Nepodporovaná bitová hloubka');
     }
 
-    return { width, height, pixels };
+    return { width, height, pixels, headerData };
   } catch (error) {
     console.error('Failed to load image', error);
     throw error;
@@ -112,7 +118,7 @@ ipcMain.handle('load-image', async (event, filePath) => {
 
 // Function to invert image's colors
 ipcMain.handle('invert-image-colors', async (event, imageData) => {
-  const { width, height, pixels } = imageData;
+  const { width, height, pixels, headerData } = imageData;
 
   // Perform color inversion
   const invertedPixels = pixels.map((value, index) => {
@@ -121,7 +127,7 @@ ipcMain.handle('invert-image-colors', async (event, imageData) => {
     return 255 - value; // Invert color component
   });
 
-  return { width, height, pixels: invertedPixels };
+  return { width, height, pixels: invertedPixels, headerData };
 });
 
 // Helper function to round and clamp pixels value
@@ -131,7 +137,7 @@ function clampAndRound(value) {
 
 // Function to adjust image saturation
 ipcMain.handle('adjust-image-saturation', async (event, imageData, saturationAdjustment) => {
-  const { width, height, pixels } = imageData;
+  const { width, height, pixels, headerData } = imageData;
 
   // Adjust saturation
   const adjustedPixels = [];
@@ -155,13 +161,12 @@ ipcMain.handle('adjust-image-saturation', async (event, imageData, saturationAdj
     adjustedPixels.push(clampAndRound(r), clampAndRound(g), clampAndRound(b), a);
   }
 
-  // console.log(`Width: ${width}, Height: ${height}, Pixels length: ${adjustedPixels.length}`);
-  return { width, height, pixels: adjustedPixels };
+  return { width, height, pixels: adjustedPixels, headerData };
 });
 
 // Function to adjust contrast
 ipcMain.handle('adjust-image-contrast', async (event, imageData, contrastAdjustment) => {
-  const { pixels } = imageData;
+  const { pixels, headerData } = imageData;
   contrastAdjustment = contrastAdjustment * 255 / 100; 
   const factor = (259 * (contrastAdjustment + 255)) / (255 * (259 - contrastAdjustment));
 
@@ -170,7 +175,7 @@ ipcMain.handle('adjust-image-contrast', async (event, imageData, contrastAdjustm
     return clampAndRound(factor * (value - 128) + 128);
   });
 
-  return { ...imageData, pixels: adjustedPixels };
+  return { ...imageData, pixels: adjustedPixels, headerData };
 });
 
 // Function to adjust brightness
@@ -188,7 +193,7 @@ ipcMain.handle('adjust-image-brightness', async (event, imageData, brightnessAdj
 
 // Function to rotate the image by 90 degrees
 ipcMain.handle('rotate-image-90', async (event, imageData) => {
-  const { width, height, pixels } = imageData;
+  const { width, height, pixels, headerData } = imageData;
 
   // Create a new array of pixels
   const rotatedPixels = new Uint8ClampedArray(width * height * 4);
@@ -208,12 +213,12 @@ ipcMain.handle('rotate-image-90', async (event, imageData) => {
     }
   }
 
-  return { width: height, height: width, pixels: rotatedPixels };
+  return { width: height, height: width, pixels: rotatedPixels, headerData };
 });
 
 // Function to flip the image vertically
 ipcMain.handle('flip-image-vertical', async (event, imageData) => {
-  const { width, height, pixels } = imageData;
+  const { width, height, pixels, headerData } = imageData;
 
   const flippedPixels = new Uint8ClampedArray(pixels.length);
 
@@ -228,12 +233,12 @@ ipcMain.handle('flip-image-vertical', async (event, imageData) => {
     }
   }
 
-  return { width, height, pixels: flippedPixels };
+  return { width, height, pixels: flippedPixels, headerData };
 });
 
 // Function to flip the image vertically
 ipcMain.handle('flip-image-horizontal', async (event, imageData) => {
-  const { width, height, pixels } = imageData;
+  const { width, height, pixels, headerData } = imageData;
 
   const flippedPixels = new Uint8ClampedArray(pixels.length);
 
@@ -248,13 +253,12 @@ ipcMain.handle('flip-image-horizontal', async (event, imageData) => {
     }
   }
 
-  return { width, height, pixels: flippedPixels };
+  return { width, height, pixels: flippedPixels, headerData };
 });
 
 // Function to convert pixels to the BMP image back and save
 ipcMain.handle('save-image', async (event, { pixels, width, height }) => {
   console.log('saving image: ', pixels);
-  console.log(`width: ${width}px x height: ${height}px`);
 
   // Dialog window to select location
   const { filePath } = await dialog.showSaveDialog({

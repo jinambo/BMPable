@@ -1,7 +1,5 @@
 
 export const load1BitImage = async (data: Buffer, width: number, height: number, headerSize: number) => {
-  console.log('Loading 1bit image ..');
-  
   const pixels = [];
   const bytesPerRow = Math.ceil(width / 32) * 4;
   const paletteOffset = 14 + 40; // BITMAPINFOHEADER
@@ -24,8 +22,6 @@ export const load1BitImage = async (data: Buffer, width: number, height: number,
 }
 
 export const load4BitImage = (data: Buffer, width: number, height: number, headerSize: number) => {
-  console.log('Loading 4bit image ..');
-
   const pixels = [];
   const bytesPerRowWithoutPadding = Math.ceil(width / 2);
   const bytesPerRow = Math.ceil((bytesPerRowWithoutPadding) / 4) * 4;
@@ -53,8 +49,6 @@ export const load4BitImage = (data: Buffer, width: number, height: number, heade
 }
 
 export const load8BitImage = (data: Buffer, width: number, height: number, headerSize: number) => {
-  console.log('Loading 8bit image ..');
-
   const pixels = [];
   const bytesPerRow = Math.ceil(width + (width % 4)); // Add padding
   const paletteOffset = 14 + 40; // BITMAPINFOHEADER
@@ -77,8 +71,6 @@ export const load8BitImage = (data: Buffer, width: number, height: number, heade
 }
 
 export const load16BitImage = (data: Buffer, width: number, height: number, headerSize: number) => {
-  console.log('Loading 16bit image ..');
-
   const pixels = [];
   const bytesPerRow = Math.ceil((width * 2) + ((width * 2) % 4)); // Add padding
   for (let y = height - 1; y >= 0; y--) {
@@ -97,8 +89,6 @@ export const load16BitImage = (data: Buffer, width: number, height: number, head
 
 
 export const load24BitImage = async (data: Buffer, imageSize: number, width: number, height: number, headerSize: number) => {
-  console.log('Loading 24bit image ..');
-
   // Calculate size of one row in bytes including the padding
   const bytesPerPixel = 24 / 8;
   const bytesPerRowWithoutPadding = width * bytesPerPixel;
@@ -106,9 +96,9 @@ export const load24BitImage = async (data: Buffer, imageSize: number, width: num
   const bytesPerRow = bytesPerRowWithoutPadding + padding;
 
   // Verify that the data size matches the expected size (width * height * 3 bajty na pixel + padding)
-  if (imageSize !== height * bytesPerRow) {
-    throw new Error('Velikost obrazových dat neodpovídá očekávané velikosti z metadat.');
-  }
+  // if (imageSize !== height * bytesPerRow) {
+  //   throw new Error('Velikost obrazových dat neodpovídá očekávané velikosti z metadat.');
+  // }
 
   // Read the image data
   const pixels = [];

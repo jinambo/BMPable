@@ -52,7 +52,6 @@ const ActionButtons: React.FC = () => {
   const saveImage = async () => {
     const result = await ipcRenderer.invoke('save-image', { ...imageData });
     if (result.success) {
-      console.log('Image saved to:', result.path);
       setGlobalMessage({
         text: `Image succesfully saved to: ${result.path}`,
         type: 'succ'

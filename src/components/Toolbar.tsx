@@ -180,6 +180,28 @@ const Toolbar: React.FC = () => {
           </ToolbarItem>
         ))}
       </ul>
+
+      <div className="toolbar-info">
+        { imageData?.headerData &&
+          <>
+            <h6>File data information</h6>
+            <ul>
+              <li>
+                <small>Size: {imageData?.width}x{imageData?.height}</small>
+              </li>
+              <li>
+                <small>Pixel Data Offset: {imageData?.headerData?.headerSize}</small>
+              </li>
+              <li>
+                <small>Bits per pixel: {imageData?.headerData?.bitsPerPixel}</small>
+              </li>
+              <li>
+                <small>Image size: {imageData?.headerData?.imageSize}</small>
+              </li>
+            </ul>
+          </>
+        }
+      </div>
     </nav>
   );
 }
