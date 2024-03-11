@@ -15,16 +15,6 @@ export const adjustableArr = [
     step: 1
   },
   {
-    title: "Contrast",
-    icon: ContrastIcon,
-    description: "You can adjust contrast of the image here.",
-    action: AdjustmentActions.CONTRAST,
-    min: -100,
-    max: 100,
-    defaultValue: 0,
-    step: 1
-  },
-  {
     title: "Brightness",
     icon: BrightnessIcon,
     description: "You can adjust brightness of the image here.",
@@ -34,4 +24,14 @@ export const adjustableArr = [
     defaultValue: 0,
     step: 1
   },
+  {
+    title: "Contrast",
+    icon: ContrastIcon,
+    description: "You can adjust contrast of the image here.",
+    action: AdjustmentActions.CONTRAST,
+    min: -100,
+    max: 100,
+    defaultValue: 0,
+    step: 1
+  }
 ];
