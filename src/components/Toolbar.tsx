@@ -6,25 +6,25 @@ import RangeInput from "./atoms/InputRange";
 import PositioningItem from "./atoms/PositioningItem";
 import ApplyButtons from "./atoms/ApplyButtons";
 const { ipcRenderer } = window.electron;
+import { AdjustmentActions, PositionActions } from "../types/Actions";
+import { adjustableArr } from "../constants/adjustableArr";
 
-import InvertIcon from "../../public/icons/invert.svg";
-import SaturationIcon from "../../public/icons/saturation.svg";
-import RotateIcon from "../../public/icons/rotate.svg";
-import FlipVerticalIcon from "../../public/icons/flip-vertical.svg";
-import FlipHorizontalIcon from "../../public/icons/flip-horizontal.svg";
-import ContrastIcon from "../../public/icons/contrast.svg";
-import BrightnessIcon from "../../public/icons/brightness.svg";
+import InvertIcon from "../assets/icons/invert.svg";
+import RotateIcon from "../assets/icons/rotate.svg";
+import FlipVerticalIcon from "../assets/icons/flip-vertical.svg";
+import FlipHorizontalIcon from "../assets/icons/flip-horizontal.svg";
+import bmpabloImage from '../assets/bmpablo.png';
 
-enum AdjustmentActions {
-  SATURATION = 'adjust-image-saturation',
-  CONTRAST = 'adjust-image-contrast',
-  BRIGHTNESS = 'adjust-image-brightness',
+
+interface AdjustableValuesProps {
+  'adjust-image-saturation': number;
+  'adjust-image-contrast': number;
+  'adjust-image-brightness': number;
 }
 
-enum PositionActions {
-  ROTATE = 'rotate-image-90',
-  FLIP_VERTICAL = 'flip-image-vertical',
-  FLIP_HORIZONTAL = 'flip-image-horizontal'
+interface PositioningValuesProps {
+  'flip-image-vertical': boolean;
+  'flip-image-horizontal': boolean;
 }
 
 const Toolbar: React.FC = () => {
@@ -35,22 +35,54 @@ const Toolbar: React.FC = () => {
     setPreviewImageData,
   } = useContext(ImageContext);
   const [inverted, setInverted] = useState<boolean>(null);
+  const [rotationCount, setRotationCount] = useState<number>(0);
+  const [adjustableValues, setAdjustableValues] = useState<AdjustableValuesProps>({
+    'adjust-image-saturation': 0,
+    'adjust-image-contrast': 0,
+    'adjust-image-brightness': 0
+  });
+  const [positioningValues, setPositioningValues] = useState<PositioningValuesProps>({
+    'flip-image-vertical': false,
+    'flip-image-horizontal': false
+  });
 
+  // Handler for positioning actions
   const handlePositioning = async (action: PositionActions) => {
     if (!imageData) return;
 
     const updatedData = await ipcRenderer.invoke(action, imageData);
     setImageData(updatedData);
+
+    // Update state with positioning values (vertical and horizontal flip) and rotation count
+    if (action === PositionActions.ROTATE) {
+      setRotationCount(rotationCount + 1);
+    } else {
+      setPositioningValues({...positioningValues, [action]: !positioningValues[action]});
+    }
   }
 
+  // Handler for filter adjusting actions
   const handleAdjustChange = async (value: number, action: AdjustmentActions) => {
     if (!imageData) return;
     if (!previewImageData) setPreviewImageData(imageData);
 
-    const adjustedData = await ipcRenderer.invoke(action, imageData, value / 100);
+    // Apply filter on current pixels
+    // TODO: update this recalculation
+    let val = value / 10;
+    if (action === AdjustmentActions.BRIGHTNESS) {
+      val = value / 100;
+    }
+    
+    const adjustedData = await ipcRenderer.invoke(action, imageData, val);
+
+    // Update preview image with adjusted pixels
     setPreviewImageData(adjustedData);
+
+    // Update state with adjusted values
+    setAdjustableValues({...adjustableValues, [action]: value});
   }
 
+  // UseEffect to handle color inversion
   useEffect(() => {
     const triggerInvertion = async () => {
       if (!imageData) return;
@@ -63,9 +95,8 @@ const Toolbar: React.FC = () => {
 
   return (
     <nav className='app-toolbar'>
-
       <div className="toolbar-logo">
-        <img className="toolbar-logo__image" src="../../public/bmpablo.png" alt="" />
+        <img className="toolbar-logo__image" src={bmpabloImage} alt="BMPablo" />
         <div className='toolbar-logo__title'>
           <h3>BMPablo</h3>
           <small>Simple BMP editor</small>
@@ -75,15 +106,19 @@ const Toolbar: React.FC = () => {
       <div className="toolbar-positioning flex-middle">
         <PositioningItem
           onClick={() => handlePositioning(PositionActions.FLIP_HORIZONTAL)}
+          isActive={positioningValues[PositionActions.FLIP_HORIZONTAL]}
           Icon={FlipHorizontalIcon}
         />
         <PositioningItem
           onClick={() => handlePositioning(PositionActions.FLIP_VERTICAL)}
+          isActive={positioningValues[PositionActions.FLIP_VERTICAL]}
           Icon={FlipVerticalIcon}
         />
         <PositioningItem
           onClick={() => handlePositioning(PositionActions.ROTATE)}
           Icon={RotateIcon}
+          rotatedTimes={rotationCount}
+          isActive={rotationCount % 4 !== 0}
         />
       </div>
 
@@ -98,56 +133,32 @@ const Toolbar: React.FC = () => {
             style={{'marginTop': '0.5rem'}}
             state={inverted}
             toggle={setInverted}
+            disabled={!imageData}
           />
         </ToolbarItem>
 
-        <ToolbarItem
-          title="Saturation"
-          Icon={SaturationIcon}
-        >
-          <h6>Adjust saturation</h6>
-          <small>You can adjust saturation of the image here.</small>
-          <RangeInput
-            min={0}
-            max={500}
-            initialValue={100}
-            step={1}
-            onChange={(value) => handleAdjustChange(value, AdjustmentActions.SATURATION)}
-          />
-          <ApplyButtons />
-        </ToolbarItem>
-
-        <ToolbarItem
-          title="Contrast"
-          Icon={ContrastIcon}
-        >
-          <h6>Adjust contrast</h6>
-          <small>You can adjust contrast of the image here.</small>
-          <RangeInput
-            min={0}
-            max={200}
-            initialValue={100}
-            step={1}
-            onChange={(value) => handleAdjustChange(value, AdjustmentActions.CONTRAST)}
-          />
-          <ApplyButtons />
-        </ToolbarItem>
-
-        <ToolbarItem
-          title="Brightness"
-          Icon={BrightnessIcon}
-        >
-          <h6>Adjust brightness</h6>
-          <small>You can adjust brightness of the image here.</small>
-          <RangeInput
-            min={-100}
-            max={100}
-            initialValue={0}
-            step={1}
-            onChange={(value) => handleAdjustChange(value, AdjustmentActions.BRIGHTNESS)}
-          />
-          <ApplyButtons />
-        </ToolbarItem>
+        { adjustableArr.map(({ title, icon: Icon, description, action, min, max, defaultValue, step }) => (
+          <ToolbarItem
+            key={action}
+            title={title}
+            Icon={Icon}
+          >
+            <h6>{`Adjust ${title.toLowerCase()}`}</h6>
+            <small>{description}</small>
+            <RangeInput
+              min={min}
+              max={max}
+              initialValue={adjustableValues[action]}
+              step={step}
+              onChange={(value) => handleAdjustChange(value, action)}
+              disabled={!imageData}
+            />
+            <ApplyButtons
+              onDiscard={() => setAdjustableValues({...adjustableValues, [action]: defaultValue})}
+              disabled={!imageData}
+            />
+          </ToolbarItem>
+        ))}
       </ul>
     </nav>
   );

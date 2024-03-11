@@ -56,11 +56,13 @@ ul {
   background-color: #c7cdd5;
 }
 
-.light-scheme .positioning-item:hover {
+.light-scheme .positioning-item:hover,
+.light-scheme .active.positioning-item {
   background-color: #222831;
 }
 
-.light-scheme .positioning-item:hover svg path {
+.light-scheme .positioning-item:hover svg path,
+.light-scheme .active.positioning-item svg path {
   fill: #c7cdd5;
 }
 
@@ -101,19 +103,30 @@ ul {
   height: calc(100% - 2rem);
   margin-left: 1rem;
   border-radius: 8px;
-  min-width: 260px;
+  width: 260px;
   background-color: #222831;
   overflow: hidden;
 }
 
 .app-preview {
   position: absolute;
-  bottom: 1rem;
+  top: 1rem;
   left: 1rem;
-  padding: 0.5rem;
+  padding: 0.5rem 1.25rem;
   border-radius: 6px;
-  background-color: #7fa3da;
+  background-color: #ff9966;
+  text-align: center;
   color: #000000;
+}
+
+.global-message {
+  position: absolute;
+  top: 1rem; left: calc(50% + 140px);
+  transform: translateX(-50%);
+  max-width: 420px;
+  padding: 0.75rem 1.25rem;
+  border-radius: 8px;
+  text-align: center;
 }
 
 .toolbar-item__inner, .toolbar-logo {
@@ -215,10 +228,12 @@ ul {
   fill: #EEEEEE;
 }
 
+.active.positioning-item,
 .positioning-item:hover {
   background-color: #ffffff;
 }
 
+.active.positioning-item svg path,
 .positioning-item:hover svg path {
   fill: #1a2029;
 }

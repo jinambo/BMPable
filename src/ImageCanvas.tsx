@@ -39,9 +39,11 @@ const ImageCanvas: React.FC = () => {
   return (
     <div className='app-workspace'>
       { previewImageData && 
-        <small className='app-preview'>This is preview of the image. You have to apply the changes first.</small>
+        <small className='app-preview'>
+          This is <b>preview</b> of the image. You have to <b>apply the changes</b> first.
+        </small>
       }
-      <canvas ref={canvasRef} style={{  }} />
+      <canvas ref={canvasRef} />
       { !imageData &&
         <p className='workspace-info'>No image data loaded yet ..</p>
       }

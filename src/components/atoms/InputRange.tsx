@@ -5,6 +5,7 @@ interface RangeInputProps {
   max: number;
   initialValue?: number;
   step?: number;
+  disabled?: boolean;
   onChange: (value: number) => void;
 }
 
@@ -13,7 +14,8 @@ const RangeInput: React.FC<RangeInputProps> = ({
   max,
   initialValue = min,
   step = 1,
-  onChange,
+  disabled,
+  onChange
 }) => {
   const [value, setValue] = useState(initialValue);
 
@@ -32,6 +34,7 @@ const RangeInput: React.FC<RangeInputProps> = ({
         value={value}
         step={step}
         onChange={handleChange}
+        disabled={disabled}
         style={{
           width: '100%',
           margin: '5px 0',

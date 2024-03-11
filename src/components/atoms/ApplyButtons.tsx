@@ -1,12 +1,14 @@
-import React, { useContext, useState } from 'react';
+import React, { useContext } from 'react';
 import { ImageContext } from '../ImageProvider';
 
 interface ApplyButtonsProps {
+  disabled?: boolean;
   onApply?: () => void;
   onDiscard?: () => void;
 }
 
 const ApplyButtons: React.FC<ApplyButtonsProps> = ({
+  disabled,
   onApply,
   onDiscard
 }) => {
@@ -17,18 +19,28 @@ const ApplyButtons: React.FC<ApplyButtonsProps> = ({
 
   const handleApply = () => {
     applyChanges();
+    onApply();
   }
 
   const handleDiscard = () => {
     discardChanges();
+    onDiscard();
   }
 
   return (
     <div className="toolbar-item__buttons flex-middle">
-      <button className="button button--small" onClick={handleApply}>
+      <button
+        className="button button--small"
+        onClick={handleApply}
+        disabled={disabled}
+      >
         Apply changes
       </button> 
-      <button className="button button--small" onClick={handleDiscard}>
+      <button
+        className="button button--small"
+        onClick={handleDiscard}
+        disabled={disabled}
+      >
         Discard
       </button> 
     </div>

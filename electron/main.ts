@@ -23,10 +23,12 @@ const VITE_DEV_SERVER_URL = process.env['VITE_DEV_SERVER_URL']
 
 function createWindow() {
   win = new BrowserWindow({
-    icon: path.join(process.env.VITE_PUBLIC, 'electron-vite.svg'),
+    icon: path.join(process.env.VITE_PUBLIC, 'bmpablo.png'),
     webPreferences: {
       preload: path.join(__dirname, 'preload.js'),
     },
+    width: 1200,
+    height: 800
   })
 
   // Test active push message to Renderer-process.
@@ -87,9 +89,9 @@ ipcMain.handle('load-image', async (event, filePath) => {
     console.log('img size: ', imageSize);
     console.log('header size (offset): ', headerSize);
 
-    if (bitsPerPixel !== 24) {
-      throw new Error('Tento příklad podporuje pouze 24-bitové BMP obrázky.');
-    }
+    // if (bitsPerPixel !== 24) {
+    //   throw new Error('Tento příklad podporuje pouze 24-bitové BMP obrázky.');
+    // }
     
     // Calculate size of one row in bytes including the padding
     const bytesPerPixel = bitsPerPixel / 8;
@@ -175,6 +177,7 @@ ipcMain.handle('adjust-image-saturation', async (event, imageData, saturationAdj
 // Function to adjust contrast
 ipcMain.handle('adjust-image-contrast', async (event, imageData, contrastAdjustment) => {
   const { pixels } = imageData;
+  contrastAdjustment = contrastAdjustment * 255 / 100; 
   const factor = (259 * (contrastAdjustment + 255)) / (255 * (259 - contrastAdjustment));
 
   const adjustedPixels = pixels.map((value, index) => {

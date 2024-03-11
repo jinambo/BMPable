@@ -1,13 +1,13 @@
 import { createContext, useEffect, useState } from "react";
 import { ImageDataProps } from "../types/ImageDataProps";
-import { ImageSettingsProps } from "../types/ImageSettingsProps";
+import { GlobalMessageProps } from "../types/GlobalMessageProps";
 
 export const ImageContext = createContext(null);
 
 const ImageProvider = ({ children }) => {
   const [imageData, setImageData] = useState<ImageDataProps | null>(null);
-  // const [imageSettings, setImageSettings] = useState<ImageSettingsProps | null>(null);
   const [previewImageData, setPreviewImageData] = useState<ImageDataProps | null>(null);
+  const [globalMessage, setGlobalMessage] = useState<GlobalMessageProps | null>(null);
 
   const applyChanges = () => {
     if (previewImageData) {
@@ -20,12 +20,20 @@ const ImageProvider = ({ children }) => {
     setPreviewImageData(null);
   }
 
+  useEffect(() => {
+    if (globalMessage) {
+      setTimeout(() => setGlobalMessage(null), 4000);
+    }
+  }, [globalMessage]);
+
   return (
     <ImageContext.Provider value={{
       imageData,
       previewImageData,
+      globalMessage,
       setImageData,
       setPreviewImageData,
+      setGlobalMessage,
       applyChanges,
       discardChanges
     }}>

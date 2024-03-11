@@ -1,5 +1,5 @@
 import { ReactNode, useState } from "react";
-import Down from "../../../public/icons/down.svg";
+import Down from "../../assets/icons/down.svg";
 
 interface ToolbarItemProps {
   title: string;

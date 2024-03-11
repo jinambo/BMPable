@@ -3,12 +3,12 @@ import { ImageDataProps } from '../types/ImageDataProps';
 import { ImageContext } from './ImageProvider';
 const { ipcRenderer } = window.electron;
 
-import AddIcon from "../../public/icons/add.svg";
-import ExportIcon from "../../public/icons/export.svg";
+import AddIcon from "../assets/icons/add.svg";
+import ExportIcon from "../assets/icons/export.svg";
 
 const ActionButtons: React.FC = () => {
   const inputRef = useRef<HTMLInputElement>(null);
-  const { setImageData, setOriginalImageData, imageData } = useContext(ImageContext);
+  const { setImageData, setGlobalMessage, imageData } = useContext(ImageContext);
 
   useEffect(() => {
     const handleFileChange = async (event: Event) => {
@@ -18,9 +18,16 @@ const ActionButtons: React.FC = () => {
         try {
           const data: ImageDataProps = await ipcRenderer.invoke('load-image', path);
           setImageData(data);
-          setOriginalImageData(data);
+          setGlobalMessage({
+            text: `Image loaded successfully`,
+            type: 'succ'
+          });
         } catch (error) {
           console.error('Failed to load image', error);
+          setGlobalMessage({
+            text: `Failed to load image', ${error}`,
+            type: 'err'
+          });
         }
       }
     };
@@ -46,8 +53,16 @@ const ActionButtons: React.FC = () => {
     const result = await ipcRenderer.invoke('save-image', { ...imageData });
     if (result.success) {
       console.log('Image saved to:', result.path);
+      setGlobalMessage({
+        text: `Image succesfully saved to: ${result.path}`,
+        type: 'succ'
+      });
     } else {
       console.error('Failed to save image:', result.error);
+      setGlobalMessage({
+        text: `Failed to save image: ${result.error}`,
+        type: 'err'
+      });
     }
   };
 
