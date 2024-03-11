@@ -4,7 +4,8 @@ import ToolbarItem from "./atoms/ToolbarItem";
 import Toggle from "./atoms/Toggle";
 import RangeInput from "./atoms/InputRange";
 import PositioningItem from "./atoms/PositioningItem";
-import ApplyButtons from "./atoms/ApplyButtons";
+import ApplyButton from "./atoms/ApplyButton";
+import DiscardButton from "./atoms/DiscardButton";
 const { ipcRenderer } = window.electron;
 import { AdjustmentActions, PositionActions } from "../types/Actions";
 import { adjustableArr } from "../constants/adjustableArr";
@@ -34,7 +35,8 @@ const Toolbar: React.FC = () => {
     previewImageData,
     setPreviewImageData,
   } = useContext(ImageContext);
-  const [inverted, setInverted] = useState<boolean>(null);
+  const [isInverted, setIsInverted] = useState<boolean>(null);
+  const [isImageDataChanged, setIsImageDataChanged] = useState<boolean>(false);
   const [rotationCount, setRotationCount] = useState<number>(0);
   const [adjustableValues, setAdjustableValues] = useState<AdjustableValuesProps>({
     'adjust-image-saturation': 0,
@@ -47,7 +49,7 @@ const Toolbar: React.FC = () => {
   });
 
   // Handler for positioning actions
-  const handlePositioning = async (action: PositionActions) => {
+  const handlePositioning = async (action: PositionActions) => {
     if (!imageData) return;
 
     const updatedData = await ipcRenderer.invoke(action, imageData);
@@ -80,18 +82,28 @@ const Toolbar: React.FC = () => {
 
     // Update state with adjusted values
     setAdjustableValues({...adjustableValues, [action]: value});
+
+    if (!isImageDataChanged) {
+      setIsImageDataChanged(true);
+    }
   }
 
   // UseEffect to handle color inversion
   useEffect(() => {
-    const triggerInvertion = async () => {
-      if (!imageData) return;
+    const triggerInvertion = async () => {
+
+      if (!imageData) {
+        console.error('Image data is not defined!');
+        return;
+      };
+
       const invertedData = await ipcRenderer.invoke('invert-image-colors', imageData);
+
       setImageData(invertedData);       
     }
 
-    if (inverted !== null) triggerInvertion();
-  }, [inverted]);
+    if (isInverted !== null) triggerInvertion();
+  }, [isInverted]);
 
   return (
     <nav className='app-toolbar'>
@@ -131,8 +143,8 @@ const Toolbar: React.FC = () => {
           <small>You can toggle image's color here</small>
           <Toggle
             style={{'marginTop': '0.5rem'}}
-            state={inverted}
-            toggle={setInverted}
+            state={isInverted}
+            toggle={setIsInverted}
             disabled={!imageData}
           />
         </ToolbarItem>
@@ -153,10 +165,17 @@ const Toolbar: React.FC = () => {
               onChange={(value) => handleAdjustChange(value, action)}
               disabled={!imageData}
             />
-            <ApplyButtons
-              onDiscard={() => setAdjustableValues({...adjustableValues, [action]: defaultValue})}
-              disabled={!imageData}
-            />
+
+            <div className="toolbar-item__buttons flex-middle">
+              <ApplyButton
+                onApply={() => setIsImageDataChanged(false)}
+                disabled={!imageData || !isImageDataChanged}
+              />
+              <DiscardButton 
+                onDiscard={() => setAdjustableValues({...adjustableValues, [action]: defaultValue})}
+                disabled={!imageData}
+              />
+            </div>
           </ToolbarItem>
         ))}
       </ul>

@@ -16,7 +16,7 @@ const ImageProvider = ({ children }) => {
     }
   };
 
-  const discardChanges = () => {
+  const discardChanges = () => {
     setPreviewImageData(null);
   }
 
