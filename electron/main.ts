@@ -3,6 +3,7 @@ import * as fs from 'fs';
 import path from 'node:path'
 import { convertPixelsToBMP } from './convertPixelsToBMP';
 import { hslToRgb, rgbToHsl } from './rgbHsvConvert';
+import { load16BitImage, load1BitImage, load24BitImage, load4BitImage, load8BitImage } from './loaders';
 
 // The built directory structure
 //
@@ -74,50 +75,34 @@ ipcMain.handle('get-image-path', async (event) => {
 ipcMain.handle('load-image', async (event, filePath) => {
   try {
     const data = await fs.readFileSync(filePath);
-    console.log('data:', data);
-
-    // Get metadata from BMP header
+    
     const headerSize = data.readUInt32LE(10);
     const width = data.readUInt32LE(18);
     const height = data.readUInt32LE(22);
     const bitsPerPixel = data.readUInt16LE(28);
     const imageSize = data.readUInt32LE(34);
 
-    console.log('width: ', width);
-    console.log('height: ', height);
-    console.log('bits per pixel: ', bitsPerPixel);
-    console.log('img size: ', imageSize);
-    console.log('header size (offset): ', headerSize);
-
-    // if (bitsPerPixel !== 24) {
-    //   throw new Error('Tento příklad podporuje pouze 24-bitové BMP obrázky.');
-    // }
-    
-    // Calculate size of one row in bytes including the padding
-    const bytesPerPixel = bitsPerPixel / 8;
-    const bytesPerRowWithoutPadding = width * bytesPerPixel;
-    const padding = (4 - (bytesPerRowWithoutPadding % 4)) % 4;
-    const bytesPerRow = bytesPerRowWithoutPadding + padding;
-
-    // Verify that the data size matches the expected size (width * height * 3 bajty na pixel + padding)
-    if (imageSize !== height * bytesPerRow) {
-      throw new Error('Velikost obrazových dat neodpovídá očekávané velikosti z metadat.');
+    let pixels;
+    switch(bitsPerPixel) {
+      case 1:
+        pixels = await load1BitImage(data, width, height, headerSize);
+        break;
+      case 4:
+        pixels = await load4BitImage(data, width, height, headerSize);
+        break;
+      case 8:
+        pixels = await load8BitImage(data, width, height, headerSize);
+        break;
+      case 16:
+        pixels = await load16BitImage(data, width, height, headerSize);
+        break;
+      case 24:
+        pixels = await load24BitImage(data, imageSize, width, height, headerSize);
+        break;
+      default:
+        throw new Error('Nepodporovaná bitová hloubka');
     }
 
-    // Read the image data
-    const pixels = [];
-    for (let y = height - 1; y >= 0; y--) { // The image is saved from the bottom rows
-      const rowStart = headerSize + y * bytesPerRow;
-      const rowEnd = rowStart + bytesPerRowWithoutPadding;
-      for (let x = rowStart; x < rowEnd; x += bytesPerPixel) {
-        const blue = data[x];
-        const green = data[x + 1];
-        const red = data[x + 2];
-        pixels.push(red, green, blue, 255); // Pixel in RGBA format
-      }
-    }
-
-    // console.log(`Width: ${width}, Height: ${height}, Pixels length: ${pixels.length}`);
     return { width, height, pixels };
   } catch (error) {
     console.error('Failed to load image', error);
