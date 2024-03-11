@@ -158,6 +158,7 @@ const Toolbar: React.FC = () => {
             <h6>{`Adjust ${title.toLowerCase()}`}</h6>
             <small>{description}</small>
             <RangeInput
+              key={`${action}-${adjustableValues[action]}`} 
               min={min}
               max={max}
               initialValue={adjustableValues[action]}
