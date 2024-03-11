@@ -84,7 +84,6 @@ const Toolbar: React.FC = () => {
     setAdjustableValues({...adjustableValues, [action]: value});
 
     if (!isImageDataChanged) {
-      console.log('Changed');
       setIsImageDataChanged(true);
     }
   }
